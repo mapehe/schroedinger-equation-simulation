@@ -84,7 +84,10 @@ N = 500
 
 # Initial Conditions
 u_init = np.zeros([1, N, N, 2])
-u_init[0, 250, 250, 1] = 100
+for i in range(500):
+    for j in range(500):
+        d = (250-i)**2 + (250-j)**2
+        u_init[0, i, j, 1] = 5*2.5**(-0.1*d)
 
 # Parameters:
 # eps -- time resolution
@@ -105,8 +108,8 @@ with tf.Session() as sess:
 
     for i in range(10**9):
         # Step simulation
-        step.run({eps: 0.03})
+        step.run({eps: 0.00015})
         # Visualize every 50 steps
-        if i % 10 == 0:
+        if i % 5000 == 0:
             clear_output()
-            render(psi.eval(), "images/%s.png" %(i // 10), brightness=0.5)
+            render(psi.eval(), "images/%s.png" %(i // 5000), brightness=0.5)
