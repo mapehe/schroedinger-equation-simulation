@@ -105,8 +105,8 @@ v = tf.constant(v_init, dtype=tf.float64)
 c1 = tf.constant([0, -0.25], dtype=tf.float64)
 c2 = tf.constant([0, 0.5], dtype=tf.float64)
 
-plot_step = 10e2
-resolution = 10e-3
+plot_step = 3 * 10e2
+resolution = 10e-4
 brightness = 0.01
 
 # Schrödinger equation
