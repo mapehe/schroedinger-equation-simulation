@@ -11,7 +11,7 @@ from io import BytesIO
 from IPython.display import clear_output, Image, display
 import colorsys
 
-
+# This renders the images.
 def render(a, image_name, brightness=0.01):
     """Display an array as a picture."""
     def z2rgb(z):
@@ -33,7 +33,7 @@ def render(a, image_name, brightness=0.01):
             color_array[i, j, :] = np.array(z2rgb(state[i, j, :]))
     PIL.Image.fromarray(color_array).save(image_name)
 
-
+# Complex multiplication.
 def complex_mul(z1, z2):
     """Multiply two complex tensors."""
     x1, y1 = tf.split(z1, [1, 1], -1)
@@ -41,6 +41,7 @@ def complex_mul(z1, z2):
     return tf.concat((x1 * x2 - y1 * y2,
                       x1 * y2 + x2 * y1), -1)
 
+# Discrete Laplacian.
 def laplace(x):
     """Compute the laplacian"""
     def laplacian_filter(d):
@@ -74,6 +75,7 @@ def laplace(x):
 tf.disable_v2_behavior()
 N = 200
 
+# Generate the inital state.
 psi_init = np.zeros([1, N, N, 2])
 for i in range(N):
     for j in range(N):
@@ -82,6 +84,7 @@ for i in range(N):
         thr = 10e-2
         psi_init[0, i, j, 0] = v
 
+# Generate the potential that confines the particle to a box.
 v_init = np.zeros([1, N, N, 2])
 for i in range(N):
     for j in range(N):
@@ -90,25 +93,28 @@ for i in range(N):
         v = min(max(0, 10e-3*(r - 95)), 10e-2)
         v_init[0, i, j, 0] = v
 
-# Parameters:
+# Define some tensorflow values.
 eps = tf.placeholder(tf.float64, shape=())
 psi = tf.Variable(psi_init, dtype=tf.float64)
 v = tf.constant(v_init, dtype=tf.float64)
 c1 = tf.constant([0, -0.25], dtype=tf.float64)
 c2 = tf.constant([0, 0.5], dtype=tf.float64)
 
+# Some simulation parameters
 plot_step = 3 * 10e2
 resolution = 10e-4
 brightness = 0.01
 
-# Schrödinger equation
+# The update rule derived from the Schrödinger equation
 psi_ = psi + eps * (complex_mul(c1, laplace(psi)) + complex_mul(c2, complex_mul(v, psi)))
 step = tf.group(psi.assign(psi_))
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    # Run the simulation
     for i in range(10**9):
         step.run({eps: resolution})
+        # Produce a plot every plot_step steps.
         if i % plot_step == 0:
             clear_output()
             render(psi.eval(), "images/%s.png" %(int(i) // int(plot_step)), brightness=brightness)
