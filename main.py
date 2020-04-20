@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Import libraries for simulation
 import tensorflow.compat.v1 as tf
 import numpy as np
@@ -59,11 +60,11 @@ def laplace(x):
             """
             count = sum(map(lambda x: abs(x - 1), a))
             if count == 0:
-                return -3
+                return -4.0
             elif count == 1:
                 return 0.5
             else:
-                return 0.25
+                return 0.5
         Z = np.zeros([3 for _ in range(d)])
         L = np.zeros([3 for _ in range(d)])
         for a in itertools.product(*[range(3) for _ in range(d)]):
@@ -79,21 +80,22 @@ def laplace(x):
 
 
 tf.disable_v2_behavior()
-N = 220
+N = 200
 
 psi_init = np.zeros([1, N, N, 2])
 for i in range(N):
     for j in range(N):
         d = (N//2-i)**2 + (N//2-j)**2
-        psi_init[0, i, j, 0] = 50*2.5**(-0.001*d)
+        v = 10**(-10e-4*d)
+        thr = 10e-2
+        psi_init[0, i, j, 0] = v
 
 v_init = np.zeros([1, N, N, 2])
 for i in range(N):
     for j in range(N):
         x, y = N // 2 - i , N // 2 - j
         r = max(abs(x), abs(y))
-        r2 = x ** 2 + y ** 2
-        v = 0 if r < 100 else 30
+        v = min(max(0, 10e-3*(r - 95)), 10e-2)
         v_init[0, i, j, 0] = v
 
 # Parameters:
@@ -103,9 +105,9 @@ v = tf.constant(v_init, dtype=tf.float64)
 c1 = tf.constant([0, -0.25], dtype=tf.float64)
 c2 = tf.constant([0, 0.5], dtype=tf.float64)
 
-plot_step = 10e4
+plot_step = 10e2
 resolution = 10e-3
-brightness = 0.94
+brightness = 0.01
 
 # Schrödinger equation
 psi_ = psi + eps * (complex_scale(c1, laplace(psi)) + complex_scale(c2, complex_mul(v, psi)))
