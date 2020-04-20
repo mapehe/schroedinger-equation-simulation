@@ -37,9 +37,8 @@ def complex_mul(z1, z2):
     """Multiply two complex tensors."""
     x1, y1 = tf.split(z1, [1, 1], -1)
     x2, y2 = tf.split(z2, [1, 1], -1)
-    return tf.concat((
-        tf.add(tf.math.multiply(x1, x2), -1 * tf.math.multiply(y1, y2)),
-        tf.add(tf.math.multiply(x1, y2), tf.math.multiply(x2, y1))), -1)
+    return tf.concat((x1 * x2 - y1 * y2,
+                      x1 * y2 + x2 * y1), -1)
 
 def complex_scale(a, z):
     """Scale a complex tensor z by a."""
@@ -80,36 +79,42 @@ def laplace(x):
 
 
 tf.disable_v2_behavior()
-N = 500
+N = 220
 
-# Initial Conditions
-u_init = np.zeros([1, N, N, 2])
-for i in range(500):
-    for j in range(500):
-        d = (250-i)**2 + (250-j)**2
-        u_init[0, i, j, 1] = 5*2.5**(-0.1*d)
+psi_init = np.zeros([1, N, N, 2])
+for i in range(N):
+    for j in range(N):
+        d = (N//2-i)**2 + (N//2-j)**2
+        psi_init[0, i, j, 0] = 50*2.5**(-0.001*d)
+
+v_init = np.zeros([1, N, N, 2])
+for i in range(N):
+    for j in range(N):
+        x, y = N // 2 - i , N // 2 - j
+        r = max(abs(x), abs(y))
+        r2 = x ** 2 + y ** 2
+        v = 0 if r < 100 else 30
+        v_init[0, i, j, 0] = v
 
 # Parameters:
-# eps -- time resolution
-# U -- the state function
 eps = tf.placeholder(tf.float64, shape=())
-psi = tf.Variable(u_init, dtype=tf.float64)
-img = tf.constant([0, -0.25], dtype=tf.float64)
+psi = tf.Variable(psi_init, dtype=tf.float64)
+v = tf.constant(v_init, dtype=tf.float64)
+c1 = tf.constant([0, -0.25], dtype=tf.float64)
+c2 = tf.constant([0, 0.5], dtype=tf.float64)
 
-psi_ = psi + eps * complex_scale(img, laplace(psi))
+plot_step = 10e4
+resolution = 10e-3
+brightness = 0.94
 
-# Operation to update the state
+# Schrödinger equation
+psi_ = psi + eps * (complex_scale(c1, laplace(psi)) + complex_scale(c2, complex_mul(v, psi)))
 step = tf.group(psi.assign(psi_))
 
 with tf.Session() as sess:
-
-    # Initialize state to initial conditions
     sess.run(tf.global_variables_initializer())
-
     for i in range(10**9):
-        # Step simulation
-        step.run({eps: 0.00015})
-        # Visualize every 50 steps
-        if i % 5000 == 0:
+        step.run({eps: resolution})
+        if i % plot_step == 0:
             clear_output()
-            render(psi.eval(), "images/%s.png" %(i // 5000), brightness=0.5)
+            render(psi.eval(), "images/%s.png" %(int(i) // int(plot_step)), brightness=brightness)
