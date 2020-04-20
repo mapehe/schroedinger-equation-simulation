@@ -1,4 +1,4 @@
-# silver-computing-machine
+# Schrödinger equation simulation
 
 This script is loosely based on a standard [TensorFlow PDE example](https://en.wikipedia.org/wiki/Particle_in_a_box).
 
