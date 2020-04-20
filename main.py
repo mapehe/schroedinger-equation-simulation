@@ -41,14 +41,6 @@ def complex_mul(z1, z2):
     return tf.concat((x1 * x2 - y1 * y2,
                       x1 * y2 + x2 * y1), -1)
 
-def complex_scale(a, z):
-    """Scale a complex tensor z by a."""
-    x1, y1 = tf.split(z, [1, 1], -1)
-    x2, y2 = a[0], a[1]
-    return tf.concat((x2 * x1 - y1 * y2,
-        x1 * y2 + x2 * y1), -1)
-
-
 def laplace(x):
     """Compute the laplacian"""
     def laplacian_filter(d):
@@ -110,7 +102,7 @@ resolution = 10e-4
 brightness = 0.01
 
 # Schrödinger equation
-psi_ = psi + eps * (complex_scale(c1, laplace(psi)) + complex_scale(c2, complex_mul(v, psi)))
+psi_ = psi + eps * (complex_mul(c1, laplace(psi)) + complex_mul(c2, complex_mul(v, psi)))
 step = tf.group(psi.assign(psi_))
 
 with tf.Session() as sess:
