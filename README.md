@@ -17,10 +17,10 @@ main.py
 
 ## Converting the rendered frames to a video
 
-After running the simulation:
+After running the simulation (this script is for 4000 frames):
 ```
 cd images
-for ((i=0; i<=0; i++)) ; do mv $i.png `printf %04d.png $i` ; done  # Zero padded filenames for ffmpeg.
-ffmpeg -r 60 -f image2 -s 500x500 -i %04d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p test.mp4
+for ((i=0; i<=4000; i++)) ; do mv $i.png `printf %04d.png $i` ; done  # Zero padded filenames for ffmpeg.
+ffmpeg -r 60 -f image2 -s 500x500 -i %04d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p -frames:v 4000 video.mp4
 ```
 Notice that here we use 4 decimal filenames (e.g. "0020.png"). If you have over 10 000 frames replace `%04d` with `%05d` above.
