@@ -73,14 +73,15 @@ def laplace(x):
 
 
 tf.disable_v2_behavior()
-N = 200
+N = 400
 
 # Generate the inital state.
 psi_init = np.zeros([1, N, N, 2])
+x_0, y_0 = (140, 0)
 for i in range(N):
     for j in range(N):
-        d = (N//2-i)**2 + (N//2-j)**2
-        v = 10**(-10e-4*d)
+        d = ((N-y_0)//2-i)**2 + ((N-x_0)//2-j)**2
+        v = 10**(-5*10e-4*d)
         thr = 10e-2
         psi_init[0, i, j, 0] = v
 
@@ -89,8 +90,7 @@ v_init = np.zeros([1, N, N, 2])
 for i in range(N):
     for j in range(N):
         x, y = N // 2 - i , N // 2 - j
-        r = max(abs(x), abs(y))
-        v = min(max(0, 10e-3*(r - 95)), 10e-2)
+        v = -5*10e-1 / max(x**2 + y**2, 1)
         v_init[0, i, j, 0] = v
 
 # Define some tensorflow values.
@@ -101,8 +101,8 @@ c1 = tf.constant([0, -0.25], dtype=tf.float64)
 c2 = tf.constant([0, 0.5], dtype=tf.float64)
 
 # Some simulation parameters
-plot_step = 3 * 10e2
-resolution = 10e-4
+plot_step = 3 * 10e1
+resolution = 10e-2
 brightness = 0.01
 
 # The update rule derived from the Schrödinger equation
